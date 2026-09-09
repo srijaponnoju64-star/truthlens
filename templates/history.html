@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TruthLens – History</title>
+    <link rel="stylesheet" href="/static/css/style.css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand"><i class="fas fa-search-plus"></i><span>TruthLens</span></div>
+    <div class="nav-links">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="/text"><i class="fas fa-file-alt"></i> Text</a>
+        <a href="/image"><i class="fas fa-image"></i> Image</a>
+        <a href="/multimodal"><i class="fas fa-layer-group"></i> Multimodal</a>
+        <a href="/history" class="active"><i class="fas fa-history"></i> History</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="page-header">
+        <i class="fas fa-history"></i>
+        <h2>Detection History</h2>
+        <p>All previous detections stored in the database</p>
+    </div>
+
+    {% if detections %}
+    <div class="history-table-wrap">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Module</th>
+                    <th>Input</th>
+                    <th>Verdict</th>
+                    <th>Confidence</th>
+                    <th>Source</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in detections %}
+                <tr>
+                    <td>{{ d[0] }}</td>
+                    <td><span class="module-tag">{{ d[1] }}</span></td>
+                    <td>{{ (d[2] or d[3] or d[4] or 'N/A')[:50] }}…</td>
+                    <td>
+                        <span class="verdict-tag {% if d[5] == 'FAKE' %}fake{% else %}real{% endif %}">
+                            {{ d[5] }}
+                        </span>
+                    </td>
+                    <td>{{ d[6] }}</td>
+                    <td>{{ d[7][:40] if d[7] else 'N/A' }}</td>
+                    <td>{{ d[10] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-history">
+        <i class="fas fa-inbox"></i>
+        <p>No detections yet. Start analysing content!</p>
+        <a href="/" class="btn-analyze">Go to Home</a>
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

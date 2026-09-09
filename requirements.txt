@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+groq
+speechrecognition
+moviepy
+pillow
+requests
+python-dotenv

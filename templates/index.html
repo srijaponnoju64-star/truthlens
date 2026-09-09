@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TruthLens – Fake News Detector</title>
+    <link rel="stylesheet" href="/static/css/style.css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand"><i class="fas fa-search-plus"></i><span>TruthLens</span></div>
+    <div class="nav-links">
+        <a href="/"          class="{% if module=='home'      %}active{% endif %}"><i class="fas fa-home"></i> Home</a>
+        <a href="/text"      class="{% if module=='text'      %}active{% endif %}"><i class="fas fa-file-alt"></i> Text</a>
+        <a href="/image"     class="{% if module=='image'     %}active{% endif %}"><i class="fas fa-image"></i> Image</a>
+        <a href="/multimodal"class="{% if module=='multimodal'%}active{% endif %}"><i class="fas fa-layer-group"></i> Multimodal</a>
+        <a href="/history"><i class="fas fa-history"></i> History</a>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════ HOME ═══ -->
+{% if module == 'home' %}
+<div class="hero">
+    <div class="hero-content">
+        <div class="logo-circle"><i class="fas fa-search-plus"></i></div>
+        <h1>TruthLens</h1>
+        <p>AI-Powered Multimodal Fake News &amp; Misinformation Detector</p>
+        <p class="subtitle">Detect fake content across Text, Images, Audio and combinations using advanced AI</p>
+        <div class="module-cards">
+            <a href="/text"       class="module-card"><i class="fas fa-file-alt"></i>   <h3>Module 1</h3><p>Text Detection</p>      <span>Analyse any text or URL</span></a>
+            <a href="/image"      class="module-card"><i class="fas fa-image"></i>       <h3>Module 2</h3><p>Image Detection</p>     <span>Upload, paste or URL</span></a>
+            <a href="/multimodal" class="module-card"><i class="fas fa-layer-group"></i> <h3>Module 3</h3><p>Image Post Detection</p><span>Social media posts</span></a>
+            <a href="/multimodal" class="module-card"><i class="fas fa-film"></i>        <h3>Module 4</h3><p>Post + Audio</p>        <span>Image with audio clip</span></a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════ TEXT ═══ -->
+{% if module == 'text' %}
+<div class="container">
+    <div class="page-header">
+        <i class="fas fa-file-alt"></i>
+        <h2>Module 1 — Text Fake Detection</h2>
+        <p>Paste text or enter a URL to analyse</p>
+    </div>
+    <div class="form-card">
+
+        <div class="input-tabs">
+            <button type="button" class="input-tab active" onclick="switchTab('textTyped','textTabGroup',this)"><i class="fas fa-keyboard"></i> Type / Paste</button>
+            <button type="button" class="input-tab"        onclick="switchTab('textUrl',  'textTabGroup',this)"><i class="fas fa-link"></i> Enter URL</button>
+        </div>
+
+        <!-- Paste text -->
+        <div id="textTyped" class="input-section active" data-group="textTabGroup">
+            <form action="/text/analyze" method="post">
+                <div class="form-group">
+                    <label><i class="fas fa-pen"></i> Type or Paste Any Text</label>
+                    <div class="action-btns">
+                        <button type="button" class="paste-btn" onclick="pasteFromClipboard('directTextarea')"><i class="fas fa-paste"></i> Paste from Clipboard</button>
+                        <button type="button" class="clear-btn" onclick="clearField('directTextarea')"><i class="fas fa-times"></i> Clear</button>
+                    </div>
+                    <textarea id="directTextarea" name="text" rows="8" placeholder="Paste any news, WhatsApp message, tweet, or claim here..."></textarea>
+                </div>
+                <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Text</button>
+            </form>
+        </div>
+
+        <!-- URL -->
+        <div id="textUrl" class="input-section" data-group="textTabGroup">
+            <form action="/text/analyze" method="post">
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> Enter News Article URL</label>
+                    <input type="text" name="text_url" class="url-input" placeholder="https://www.example.com/news-article"/>
+                    <p class="url-hint"><i class="fas fa-info-circle"></i> The system will fetch and analyse the article content automatically.</p>
+                </div>
+                <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Fetch &amp; Analyse URL</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════ IMAGE ═══ -->
+{% if module == 'image' %}
+<div class="container">
+    <div class="page-header">
+        <i class="fas fa-image"></i>
+        <h2>Module 2 — Image Fake Detection</h2>
+        <p>Upload an image, paste from clipboard, or enter an image URL</p>
+    </div>
+    <div class="form-card">
+
+        <div class="input-tabs">
+            <button type="button" class="input-tab active" onclick="switchTab('imgUploadSec','imgTabGroup',this)"><i class="fas fa-upload"></i> Upload</button>
+            <button type="button" class="input-tab"        onclick="switchTab('imgUrlSec',   'imgTabGroup',this)"><i class="fas fa-link"></i> URL</button>
+            <button type="button" class="input-tab"        onclick="switchTab('imgPasteSec', 'imgTabGroup',this)"><i class="fas fa-paste"></i> Paste</button>
+        </div>
+
+        <!-- Upload -->
+        <div id="imgUploadSec" class="input-section active" data-group="imgTabGroup">
+            <form action="/image/analyze" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label><i class="fas fa-upload"></i> Upload Image File</label>
+                    <div class="upload-area" onclick="document.getElementById('imgFileInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload or drag and drop</p>
+                        <span>Supports JPG, PNG, GIF, WEBP</span>
+                        <input type="file" id="imgFileInput" name="image" accept="image/*" style="display:none" onchange="previewImage(event,'imgUploadPreview')"/>
+                    </div>
+                    <img id="imgUploadPreview" class="preview-img" style="display:none"/>
+                </div>
+                <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Image</button>
+            </form>
+        </div>
+
+        <!-- URL -->
+        <div id="imgUrlSec" class="input-section" data-group="imgTabGroup">
+            <form action="/image/analyze" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> Enter Image URL</label>
+                    <input type="text" name="image_url" class="url-input" placeholder="https://example.com/image.jpg" oninput="previewFromUrl(this.value,'imgUrlPreview')"/>
+                    <p class="url-hint"><i class="fas fa-info-circle"></i> Paste any direct image URL. Preview appears below.</p>
+                    <img id="imgUrlPreview" class="preview-img" style="display:none"/>
+                </div>
+                <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Image URL</button>
+            </form>
+        </div>
+
+        <!-- Paste -->
+        <div id="imgPasteSec" class="input-section" data-group="imgTabGroup">
+            <form action="/image/analyze" method="post" enctype="multipart/form-data" id="imgPasteForm">
+                <div class="form-group">
+                    <label><i class="fas fa-paste"></i> Paste Image from Clipboard</label>
+                    <div class="paste-zone" id="imgPasteZone" tabindex="0" onclick="this.focus()" onpaste="handlePasteImage(event,'imgPastePreview','imgPasteData')">
+                        <i class="fas fa-paste"></i>
+                        <p>Click here then press Ctrl+V to paste image</p>
+                        <span>Copy any image and paste directly here</span>
+                    </div>
+                    <img id="imgPastePreview" class="preview-img" style="display:none"/>
+                    <input type="hidden" id="imgPasteData" name="pasted_image"/>
+                </div>
+                <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Pasted Image</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════ MULTIMODAL ═══ -->
+{% if module == 'multimodal' %}
+<div class="container">
+    <div class="page-header">
+        <i class="fas fa-layer-group"></i>
+        <h2>Multimodal Detection — Modules 3 &amp; 4</h2>
+        <p>Analyse social media posts and audio clips for fake content</p>
+    </div>
+    <div class="form-card">
+
+        <div class="module-tabs">
+            <button class="tab-btn active" onclick="showMainTab('mod3',this)"><i class="fas fa-images"></i> Module 3 — Image Post</button>
+            <button class="tab-btn"        onclick="showMainTab('mod4',this)"><i class="fas fa-film"></i>  Module 4 — Post + Audio</button>
+        </div>
+
+        <!-- ── MODULE 3 ── -->
+        <div id="mod3" class="tab-content active">
+            <div class="module-desc"><i class="fas fa-info-circle"></i> Upload a social media post image — AI reads all text inside automatically.</div>
+
+            <div class="input-tabs">
+                <button type="button" class="input-tab active" onclick="switchTab('m3UploadSec','m3TabGroup',this)"><i class="fas fa-upload"></i> Upload</button>
+                <button type="button" class="input-tab"        onclick="switchTab('m3UrlSec',   'm3TabGroup',this)"><i class="fas fa-link"></i> URL</button>
+                <button type="button" class="input-tab"        onclick="switchTab('m3PasteSec', 'm3TabGroup',this)"><i class="fas fa-paste"></i> Paste</button>
+            </div>
+
+            <div id="m3UploadSec" class="input-section active" data-group="m3TabGroup">
+                <form action="/multimodal/analyze" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="module_type" value="imagetext"/>
+                    <div class="form-group">
+                        <div class="upload-area" onclick="document.getElementById('m3File').click()">
+                            <i class="fas fa-cloud-upload-alt"></i><p>Click to upload post image</p><span>JPG, PNG, WEBP</span>
+                            <input type="file" id="m3File" name="image" accept="image/*" style="display:none" onchange="previewImage(event,'m3UploadPreview')"/>
+                        </div>
+                        <img id="m3UploadPreview" class="preview-img" style="display:none"/>
+                    </div>
+                    <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Post</button>
+                </form>
+            </div>
+
+            <div id="m3UrlSec" class="input-section" data-group="m3TabGroup">
+                <form action="/multimodal/analyze" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="module_type" value="imagetext"/>
+                    <div class="form-group">
+                        <label><i class="fas fa-link"></i> Post Image URL</label>
+                        <input type="text" name="image_url" class="url-input" placeholder="https://example.com/post-image.jpg" style="width:100%;margin-bottom:10px"/>
+                    </div>
+                    <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Post URL</button>
+                </form>
+            </div>
+
+            <div id="m3PasteSec" class="input-section" data-group="m3TabGroup">
+                <form action="/multimodal/analyze" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="module_type" value="imagetext"/>
+                    <div class="form-group">
+                        <label><i class="fas fa-paste"></i> Paste Post Image</label>
+                        <div class="paste-zone" tabindex="0" onclick="this.focus()" onpaste="handlePasteImage(event,'m3PastePreview','m3PasteData')">
+                            <i class="fas fa-paste"></i><p>Click here then Ctrl+V to paste</p>
+                        </div>
+                        <img id="m3PastePreview" class="preview-img" style="display:none"/>
+                        <input type="hidden" id="m3PasteData" name="pasted_image"/>
+                    </div>
+                    <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Pasted Post</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── MODULE 4 ── -->
+        <div id="mod4" class="tab-content">
+            <div class="module-desc"><i class="fas fa-info-circle"></i> Upload post image + audio clip. AI checks if they are related then analyses for fake content.</div>
+
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" onclick="showSubTab('imageaudio',this)"><i class="fas fa-photo-video"></i> Image + Text + Audio</button>
+                <button class="sub-tab-btn"        onclick="showSubTab('videotab',  this)"><i class="fas fa-video"></i> Video File</button>
+            </div>
+
+            <!-- Image + Text + Audio -->
+            <div id="imageaudio" class="sub-tab-content active">
+                <form action="/multimodal/analyze" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="module_type" value="full"/>
+
+                    <div class="input-tabs">
+                        <button type="button" class="input-tab active" onclick="switchTab('m4UploadSec','m4TabGroup',this)"><i class="fas fa-upload"></i> Upload</button>
+                        <button type="button" class="input-tab"        onclick="switchTab('m4UrlSec',   'm4TabGroup',this)"><i class="fas fa-link"></i> URL</button>
+                        <button type="button" class="input-tab"        onclick="switchTab('m4PasteSec', 'm4TabGroup',this)"><i class="fas fa-paste"></i> Paste</button>
+                    </div>
+
+                    <div id="m4UploadSec" class="input-section active" data-group="m4TabGroup">
+                        <div class="form-group">
+                            <div class="upload-area" onclick="document.getElementById('m4File').click()">
+                                <i class="fas fa-cloud-upload-alt"></i><p>Click to upload post image</p><span>JPG, PNG, WEBP</span>
+                                <input type="file" id="m4File" name="image" accept="image/*" style="display:none" onchange="previewImage(event,'m4Preview')"/>
+                            </div>
+                            <img id="m4Preview" class="preview-img" style="display:none"/>
+                        </div>
+                    </div>
+
+                    <div id="m4UrlSec" class="input-section" data-group="m4TabGroup">
+                        <div class="form-group">
+                            <label><i class="fas fa-link"></i> Image URL</label>
+                            <input type="text" name="image_url" class="url-input" placeholder="https://example.com/image.jpg" style="width:100%;margin-bottom:10px"/>
+                        </div>
+                    </div>
+
+                    <div id="m4PasteSec" class="input-section" data-group="m4TabGroup">
+                        <div class="form-group">
+                            <label><i class="fas fa-paste"></i> Paste Image</label>
+                            <div class="paste-zone" tabindex="0" onclick="this.focus()" onpaste="handlePasteImage(event,'m4PastePreview','m4PasteData')">
+                                <i class="fas fa-paste"></i><p>Click here then Ctrl+V</p>
+                            </div>
+                            <img id="m4PastePreview" class="preview-img" style="display:none"/>
+                            <input type="hidden" id="m4PasteData" name="pasted_image"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top:20px">
+                        <label><i class="fas fa-pen"></i> Caption / Text <span style="color:#666;font-weight:400">(Optional)</span></label>
+                        <textarea name="text" rows="3" placeholder="Type caption text here (optional)..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-microphone"></i> Upload Audio Clip</label>
+                        <div class="audio-upload-box">
+                            <i class="fas fa-microphone"></i>
+                            <p>Select audio file from your device</p>
+                            <span>Supports WAV, MP3, OGG, M4A</span>
+                            <input type="file" name="audio" accept=".wav,.mp3,.ogg,.m4a,audio/*" onchange="showFileName(event,'audioFileName')"/>
+                        </div>
+                        <p id="audioFileName" class="file-name"></p>
+                    </div>
+
+                    <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Image + Text + Audio</button>
+                </form>
+            </div>
+
+            <!-- Video -->
+            <div id="videotab" class="sub-tab-content">
+                <form action="/multimodal/analyze_video" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label><i class="fas fa-video"></i> Upload Video File</label>
+                        <div class="audio-upload-box">
+                            <i class="fas fa-video" style="font-size:36px;color:#00d4ff;display:block;margin-bottom:10px"></i>
+                            <p>Upload video — AI extracts frame and audio automatically</p>
+                            <span>Supports MP4, AVI, MOV, MKV, WEBM</span>
+                            <input type="file" name="video" accept=".mp4,.avi,.mov,.mkv,.webm,video/*" onchange="showFileName(event,'videoName')"/>
+                        </div>
+                        <p id="videoName" class="file-name"></p>
+                    </div>
+                    <div class="video-info-box">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>AI will automatically extract a frame and transcribe audio from the video, then give FAKE or REAL verdict.</span>
+                    </div>
+                    <button type="submit" class="btn-analyze"><i class="fas fa-search"></i> Analyse Video</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script src="/static/js/main.js"></script>
+</body>
+</html>
