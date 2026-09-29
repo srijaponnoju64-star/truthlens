@@ -9,3 +9,6 @@ pillow
 requests
 python-dotenv
 imageio-ffmpeg
+transformers
+torch
+torch-vision
