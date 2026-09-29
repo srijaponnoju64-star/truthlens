@@ -1,5 +1,10 @@
-venv/ 
-__pycache__/ 
-*.pyc 
-detections.db 
-.env 
+venv/
+__pycache__/
+*.pyc
+detections.db
+.env
+backup/
+batch_eval_results.json
+batch_eval_results_v2.json
+uploads/tts_clip*.wav
+uploads/file1.mp4

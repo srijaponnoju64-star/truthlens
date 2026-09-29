@@ -13,3 +13,10 @@ if not GROQ_API_KEY:
     )
 
 groq_client = Groq(api_key=GROQ_API_KEY)
+
+SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+if not SERPER_API_KEY:
+    raise EnvironmentError(
+        "SERPER_API_KEY is not set. "
+        "Add it to your .env file: SERPER_API_KEY=your_key_here"
+    )

@@ -42,9 +42,36 @@ async def analyze_image_route(
         elif image_url and image_url.strip():
             r = requests.get(image_url.strip(), timeout=10,
                              headers={"User-Agent": "Mozilla/5.0"})
+
+            content_type = r.headers.get("Content-Type", "")
+            if r.status_code != 200:
+                return _render_error(
+                    request,
+                    f"Could not download image from URL (HTTP {r.status_code}). "
+                    "The link may be broken or blocked."
+                )
+            if "image" not in content_type.lower():
+                return _render_error(
+                    request,
+                    f"The URL did not return an image (got '{content_type}'). "
+                    "Some sites block direct downloads or the link points to a webpage, not a picture file."
+                )
+
             file_path = os.path.join(UPLOAD_DIR, "url_image.jpg")
             with open(file_path, "wb") as f:
                 f.write(r.content)
+
+            # Double-check the downloaded bytes actually open as an image
+            try:
+                from PIL import Image
+                import io
+                Image.open(io.BytesIO(r.content)).verify()
+            except Exception:
+                return _render_error(
+                    request,
+                    "The downloaded file was not a valid image. Please try a direct image link "
+                    "(usually ending in .jpg, .png, or .webp)."
+                )
 
         elif pasted_image and pasted_image.strip():
             raw = (pasted_image.split("base64,")[1]

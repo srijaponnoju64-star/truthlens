@@ -1,13 +1,13 @@
 import os
+import re
 import base64
 import io
 from app.config import groq_client
 
-_MIME = {".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-         ".png": "image/png",  ".gif": "image/gif", ".webp": "image/webp"}
+MODEL_NAME = "qwen/qwen3.8-27b"
 
 _PROMPT = """You are a world-class expert at detecting fake, manipulated or AI-generated images.
-Analyse this image for signs of manipulation, deepfake, AI-generation, or false context.
+Look carefully at the attached image. Check for signs of manipulation, deepfake, AI-generation, or false context.
 Respond in EXACTLY this format (no extra lines):
 VERDICT: FAKE
 CONFIDENCE: 88%
@@ -20,6 +20,7 @@ Rules:
 - If REAL -> SOURCE = Verified news agencies Reuters AP PTI and SPREAD_BY = Verified photojournalists
 - NEVER put N/A for SOURCE when FAKE
 """
+
 
 def _resize_image(image_bytes: bytes, max_size_kb: int = 800) -> tuple:
     try:
@@ -38,6 +39,7 @@ def _resize_image(image_bytes: bytes, max_size_kb: int = 800) -> tuple:
     except Exception:
         return image_bytes, "image/jpeg"
 
+
 def analyze_image(image_path: str) -> dict:
     try:
         with open(image_path, "rb") as f:
@@ -49,6 +51,7 @@ def analyze_image(image_path: str) -> dict:
         print("image_service error:", e)
         return _error(str(e))
 
+
 def analyze_image_from_base64(image_data: str, mime_type: str = "image/jpeg") -> dict:
     try:
         image_bytes = base64.b64decode(image_data)
@@ -59,29 +62,42 @@ def analyze_image_from_base64(image_data: str, mime_type: str = "image/jpeg") ->
         print("image_service (b64) error:", e)
         return _error(str(e))
 
+
 def _call_api(image_data: str, mime: str) -> dict:
+    # The image is now really sent to the model (before, only the text was sent)
     response = groq_client.chat.completions.create(
-        model="qwen/qwen3.8-27b",
+        model=MODEL_NAME,
         messages=[{
             "role": "user",
-            "content": _PROMPT
+            "content": [
+                {"type": "text", "text": _PROMPT},
+                {"type": "image_url",
+                 "image_url": {"url": f"data:{mime};base64,{image_data}"}},
+            ],
         }],
         temperature=0.2,
         max_tokens=600,
     )
     return _parse(response.choices[0].message.content)
 
+
 def _parse(raw: str) -> dict:
     data = {"verdict": "UNKNOWN", "confidence": "N/A",
             "source": "N/A", "spread_by": "N/A", "explanation": "N/A"}
     for line in raw.strip().splitlines():
-        line = line.strip()
-        if line.startswith("VERDICT:"):       data["verdict"]     = line[8:].strip()
-        elif line.startswith("CONFIDENCE:"):  data["confidence"]  = line[11:].strip()
-        elif line.startswith("SOURCE:"):      data["source"]      = line[7:].strip()
-        elif line.startswith("SPREAD_BY:"):   data["spread_by"]   = line[10:].strip()
-        elif line.startswith("EXPLANATION:"): data["explanation"] = line[12:].strip()
+        line = line.strip().strip("*").strip()
+        if line.startswith("VERDICT:"):
+            data["verdict"] = re.sub(r"[^A-Z]", "", line[8:].upper()) or "UNKNOWN"
+        elif line.startswith("CONFIDENCE:"):
+            data["confidence"] = line[11:].strip()
+        elif line.startswith("SOURCE:"):
+            data["source"] = line[7:].strip()
+        elif line.startswith("SPREAD_BY:"):
+            data["spread_by"] = line[10:].strip()
+        elif line.startswith("EXPLANATION:"):
+            data["explanation"] = line[12:].strip()
     return data
+
 
 def _error(msg: str) -> dict:
     return {"verdict": "ERROR", "confidence": "N/A",
